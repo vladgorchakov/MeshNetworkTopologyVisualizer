@@ -2,8 +2,19 @@ import requests
 
 
 class MeshGraph:
-    def __init__(self, points):
-        self.points = points
+    def __init__(self):
+        self.__points = []
+
+    def create_points_from_maps(self, main_node: dict) -> list:
+        main_node_id = main_node.get('nodeId')
+        if main_node_id:
+            subs = main_node.get('subs')
+            if subs:
+                for sub in subs:
+                    self.__points.append((main_node_id, sub['nodeId']))
+                    self.create_points_from_maps(sub)
+
+        return self.__points
 
 
 class MeshDevice:
@@ -15,20 +26,9 @@ class MeshDevice:
         return response.json()
 
 
-def create_graph(grapgh, main_node):
-    main_node_id = main_node.get('nodeId')
-    if main_node_id:
-        subs = main_node.get('subs')
-        if subs:
-            for sub in subs:
-                graph.append((main_node_id, sub['nodeId']))
-                create_graph(graph, sub)
-
-
 # data = '{"nodeId":474950769,"root":true,"subs":[{"nodeId":679054265,"subs":[{"nodeId":699587809},{"nodeId":675614937,"subs":[{"nodeId":699587633,"subs":[{"nodeId":697631273,"subs":[{"nodeId":697627909}]}]}]}]}]}'
-graph = []
 link = 'http://192.168.0.102:80/scan/'
-data = get_mesh_topology_json(link)
-
-create_graph(graph, data)
-print(graph)
+root_device = MeshDevice(link)
+data = root_device.get_mesh_map()
+graph = MeshGraph()
+print(graph.create_points_from_maps(data))
