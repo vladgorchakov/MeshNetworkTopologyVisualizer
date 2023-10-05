@@ -7,12 +7,13 @@ class MeshNode:
 
     def scan_network(self) -> dict:
         try:
-            topology = requests.get(self.__url).json()
+            response = requests.get(self.__url)
         except requests.exceptions.ConnectionError as error:
-            print("Node is not connect!")
-            print(error)
-        except requests.exceptions.JSONDecodeError as error:
-            print("Response is not JSON. Check mesh node API data format!")
-            print(error)
+            print('Node is not connect:', error, sep='\n')
         else:
-            return topology
+            try:
+                topology = response.json()
+            except requests.exceptions.JSONDecodeError as error:
+                print('Response data format is not JSON. Check API endpoint format:', error, sep='\n')
+            else:
+                return topology
